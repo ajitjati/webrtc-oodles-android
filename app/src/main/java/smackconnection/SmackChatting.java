@@ -162,7 +162,6 @@ public class SmackChatting extends AppCompatActivity {
 
     /*Account creation code...//change from server side deny all to allow all*/
     private void accountCreation(AbstractXMPPConnection conn1) {
-        Log.e("Account", "CREATEDDD");
         try {
             AccountManager accountManager = AccountManager.getInstance(conn1);
             accountManager.sensitiveOperationOverInsecureConnection(true);
