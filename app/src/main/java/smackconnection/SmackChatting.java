@@ -49,7 +49,7 @@ import java.util.Map;
 
 /**
  * Important Links Android
- * 1) https://github.com/igniterealtime/Smack
+ * https://github.com/igniterealtime/Smack
  */
 
 public class SmackChatting extends AppCompatActivity {
@@ -79,7 +79,7 @@ public class SmackChatting extends AppCompatActivity {
             try {
                 DomainBareJid serviceNamJid = JidCreate.domainBareFrom("localhost");
                 XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                        //.setUsernameAndPassword("ankita", "774784")
+                        .setUsernameAndPassword("ankita", "774784")
                         .setHostAddress(InetAddress.getByName("192.168.3.30"))
                         .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                         .setXmppDomain(serviceNamJid)
