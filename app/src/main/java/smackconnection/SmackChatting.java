@@ -172,6 +172,7 @@ public class SmackChatting extends AppCompatActivity {
             }
         });
         EntityBareJid jid = null;
+        
         try {
             jid = JidCreate.entityBareFrom("shubham@localhost");     /*Give id to whom you want to chat*/
             Chat chat = chatManager.chatWith(jid);
