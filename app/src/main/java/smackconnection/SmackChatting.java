@@ -56,8 +56,9 @@ public class SmackChatting extends AppCompatActivity {
 
     private static final String DOMAIN = "localhost";
     private static final String HOST = "192.168.3.30";
-    Button connectButton;
+    Button connectButton, deleteButton;
     AbstractXMPPConnection conn1;
+    AccountManager accountManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +72,33 @@ public class SmackChatting extends AppCompatActivity {
                 task.execute("");
             }
         });
+        deleteButton = (Button) findViewById(R.id.deleteButton);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    accountManager.deleteAccount();
+                    Log.e("Account", "Deleted");
+                } catch (SmackException.NoResponseException e) {
+                    e.printStackTrace();
+                } catch (XMPPException.XMPPErrorException e) {
+                    e.printStackTrace();
+                } catch (SmackException.NotConnectedException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+    }
+
+    private void initAccount() {
+        accountManager = AccountManager.getInstance(conn1);
+        accountManager.sensitiveOperationOverInsecureConnection(true);
+//        Map<String, String> additionalAttributes = new HashMap<>();
+//        additionalAttributes.put("name", "Ankita Singh");
+//        additionalAttributes.put("email", "ankita.singh@oodlestechnologies.com");
     }
 
     private class MyLoginTask extends AsyncTask<String, String, String> {
@@ -93,8 +121,8 @@ public class SmackChatting extends AppCompatActivity {
                     if (conn1.isConnected()) {
                         Log.e("AndroidConnection", "completed");
                         Log.w("app", "conn done");
-                        accountCreation(conn1);
-                        //  conn1.login();
+                        //accountCreation(conn1);
+                         conn1.login();
                         // sentChatMessage("Hi Shashwat!");   //accountCreation(conn1);
                     }
                     if (conn1.isAuthenticated()) {
@@ -161,19 +189,21 @@ public class SmackChatting extends AppCompatActivity {
     }
 
     /*Account creation code...//change from server side deny all to allow all*/
+
     private void accountCreation(AbstractXMPPConnection conn1) {
         try {
-            AccountManager accountManager = AccountManager.getInstance(conn1);
-            accountManager.sensitiveOperationOverInsecureConnection(true);
-            Map<String, String> additionalAttributes = new HashMap<>();
-            additionalAttributes.put("name", "Ankita Singh");
-            additionalAttributes.put("email", "ankita.singh@oodlestechnologies.com");
-            accountManager.createAccount(Localpart.from("anki1514"), "anki1514");//,additionalAttributes);
+            initAccount();
+            accountManager.createAccount(Localpart.from("ankita38"), "anki1514");            //,additionalAttributes);
             Log.e("accountCreated", "created");
+//            conn1.login("ankita12","anki1514");
+//            if (conn1.isAuthenticated()) {
+//                Log.e("AndroidConnection", "isAuthenticated");
+//                roasterAndroid();
+//                Log.w("app", "Auth done");
+//            }
         } catch (Exception e) {
             Log.e("ExceptionException", e.toString());
         }
-
     }
 
     @Override
