@@ -10,6 +10,7 @@
         sha1="d4cceb6c86ecbeaee3cc84f83b82a6a7bfe8704c">
         <dex dex="/home/ankita/AndroidStudioProjects/AppRtcAndroidOodles/app/build/intermediates/pre-dexed/debug/libjingle_peerconnection_d2f6f0ff558baf7e063683b57f6a5919069b5b04.jar" />
     </item>
+
     <item
         is-multidex="false"
         jar="/home/ankita/AndroidStudioProjects/webrtc-oodles-android/app/libs/libjingle_peerconnection.jar"
@@ -19,5 +20,4 @@
         sha1="d4cceb6c86ecbeaee3cc84f83b82a6a7bfe8704c">
         <dex dex="/home/ankita/AndroidStudioProjects/webrtc-oodles-android/app/build/intermediates/pre-dexed/debug/libjingle_peerconnection_adb976766987ac3f0a07c6c9452730e454d353b4.jar" />
     </item>
-
 </items>

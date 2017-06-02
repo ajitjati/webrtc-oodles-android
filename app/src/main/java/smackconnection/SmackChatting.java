@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+
 import com.oodles.apprtcandroidoodles.R;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -28,11 +29,13 @@ import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jxmpp.jid.DomainBareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
+
 import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.IOException;
@@ -43,12 +46,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+
 /**
  * Created by ankita on 25/5/17.
  */
 
 /**
  * Important Links Android
+<<<<<<< HEAD
  * https://github.com/igniterealtime/Smack
  */
 
@@ -59,11 +64,21 @@ public class SmackChatting extends AppCompatActivity {
     Button connectButton, deleteButton;
     AbstractXMPPConnection conn1;
     AccountManager accountManager;
+=======
+ * 1) https://github.com/igniterealtime/Smack
+ */
+public class SmackChatting  extends AppCompatActivity {
+    AbstractXMPPConnection conn1;
+    private static final String DOMAIN = "nimbuzz.com";
+    private static final String HOST = "o.nimbuzz.com";
+
+>>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.smack_activity);
+<<<<<<< HEAD
         connectButton = (Button) findViewById(R.id.connectButton);
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,6 +114,10 @@ public class SmackChatting extends AppCompatActivity {
 //        Map<String, String> additionalAttributes = new HashMap<>();
 //        additionalAttributes.put("name", "Ankita Singh");
 //        additionalAttributes.put("email", "ankita.singh@oodlestechnologies.com");
+=======
+        MyLoginTask task = new MyLoginTask();
+        task.execute("");
+>>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
     }
 
     private class MyLoginTask extends AsyncTask<String, String, String> {
@@ -135,6 +154,7 @@ public class SmackChatting extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 Log.e("Exception", e.toString());
+
             }
             return "";
         }
