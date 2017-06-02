@@ -72,7 +72,7 @@ public class SmackChatting extends AppCompatActivity {
                 task.execute("");
             }
         });
-        deleteButton = (Button) findViewById(R.id.deleteButton);
+       /* deleteButton = (Button) findViewById(R.id.deleteButton);
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,7 +89,7 @@ public class SmackChatting extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
 
     }
 
