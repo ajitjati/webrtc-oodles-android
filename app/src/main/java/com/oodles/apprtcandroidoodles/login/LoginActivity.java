@@ -27,7 +27,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         myPrefs = new MyPrefs(LoginActivity.this);
         if (myPrefs.isLogin()) {
-            Intent loginUser = new Intent(LoginActivity.this, MainOption.class);
+            Intent loginUser = new Intent(LoginActivity.this, LoginUserActivity.class);
             startActivity(loginUser);
             finish();
         } else {
@@ -46,7 +46,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             case R.id.loginbtn:
                 if (!mobileNumber.getText().toString().trim().equalsIgnoreCase("")) {
                     if (password.getText().toString().toString().equalsIgnoreCase("oodles")) {
-                        Intent intent = new Intent(LoginActivity.this, MainOption.class);
+                        Intent intent = new Intent(LoginActivity.this, LoginUserActivity.class);
                         startActivity(intent);
                         myPrefs.setCallFrom(mobileNumber.getText().toString().trim());
                         myPrefs.setLogin(true);

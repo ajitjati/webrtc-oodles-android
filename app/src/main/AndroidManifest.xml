@@ -13,10 +13,12 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
@@ -24,17 +26,26 @@
         android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name">
-        <activity
 
-            android:name="smackconnection.SmackChatting"
-
+        <activity android:name=".login.SplashActivity"
             android:theme="@style/AppTheme">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
+        <activity
+            android:name=".login.LoginActivity"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name="smackconnection.SmackChatting"
+            android:configChanges="orientation|screenSize"
+            android:label="CallActivity"
+            android:theme="@style/AppThemeBase" />
         <activity
             android:name=".login.LoginUserActivity"
             android:label="@string/app_name"
@@ -53,6 +64,7 @@
                     android:host="webrtc.a-fkd.de/jWebrtc"
                     android:scheme="http" />
             </intent-filter>
+
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable_menu" />
@@ -60,9 +72,9 @@
         <activity
             android:name=".login.MainOption"
             android:theme="@style/AppTheme" />
-        <!--<activity-->
-        <!--android:name=".SettingsActivity"-->
-        <!--android:label="@string/settings_name"></activity>-->
+        <!-- <activity -->
+        <!-- android:name=".SettingsActivity" -->
+        <!-- android:label="@string/settings_name"></activity> -->
 
         <activity
             android:name=".CallActivity"
@@ -70,22 +82,19 @@
             android:keepScreenOn="true"
             android:label="@string/app_name"
             android:screenOrientation="fullUser"
-            android:theme="@style/AppThemeBase"></activity>
+            android:theme="@style/AppThemeBase" />
+
         <service
             android:name=".NotificationService"
             android:enabled="true"
-            android:exported="true"></service>
-
-
-
+            android:exported="true" />
         <service android:name=".MyFcmListenerService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
         <service
-            android:name="com.oodles.apprtcandroidoodles.MyInstanceIDListenerService"
+            android:name=".MyInstanceIDListenerService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID" />

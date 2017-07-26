@@ -13,7 +13,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-import com.oodles.apprtcandroidoodles.login.ContactRecyclerView;
+import com.oodles.apprtcandroidoodles.login.ContactRecyclerViewAdapter;
 
 import org.webrtc.IceCandidate;
 import org.webrtc.RendererCommon;
@@ -71,7 +71,7 @@ public abstract class RTCConnection extends AppCompatActivity implements
 
     public ArrayList<String> roomList;
     public ArrayAdapter arrayAdapter;
-    public ContactRecyclerView contactRecyclerView;
+    public ContactRecyclerViewAdapter contactRecyclerViewAdapter;
     public static Ringtone ringtone;
 
     // Peer connection statistics callback period in ms.

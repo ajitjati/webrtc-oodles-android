@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="10dp"
-            android:background="@android:color/holo_orange_dark"
+            android:background="@color/colorPrimary"
             android:text="Login"
             android:textColor="@android:color/white" />
     </LinearLayout>

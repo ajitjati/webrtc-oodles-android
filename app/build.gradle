@@ -24,14 +24,14 @@ android {
     lintOptions {
         abortOnError false
     }
-    splits {
+    /* splits {
         abi {
             enable true
             reset()
             include 'x86', 'armeabi-v7a'
             universalApk false
         }
-    }
+    }*/
     productFlavors {
     }
 }
@@ -42,6 +42,14 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile files('libs/libjingle_peerconnection.jar')
+
+    //    compile 'org.igniterealtime.smack:smack-im:4.2.0'
+//    compile  'org.igniterealtime.smack:smack-android:4.2.0'
+//    compile 'org.igniterealtime.smack:smack-extensions:4.2.0'
+//    compile 'org.igniterealtime.smack:smack-bosh:4.2.0'
+    configurations {
+        all*.exclude group: 'xpp3', module: 'xpp3'
+    }
     compile 'com.neovisionaries:nv-websocket-client:1.30'
     compile 'com.android.support:design:25.3.1'
     compile 'com.android.support:recyclerview-v7:25.3.1'
@@ -49,19 +57,12 @@ dependencies {
     compile 'com.android.support:animated-vector-drawable:25.3.1'
     compile 'com.android.support:customtabs:25.3.1'
     compile 'com.android.support:mediarouter-v7:25.3.1'
-    compile "com.google.firebase:firebase-messaging:9.0.0"
+    compile 'com.google.firebase:firebase-messaging:9.0.0'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
-
     compile 'org.igniterealtime.smack:smack-tcp:4.2.0'
     compile 'org.igniterealtime.smack:smack-android-extensions:4.2.0'
-//    compile 'org.igniterealtime.smack:smack-im:4.2.0'
-//    compile  'org.igniterealtime.smack:smack-android:4.2.0'
-//    compile 'org.igniterealtime.smack:smack-extensions:4.2.0'
-//    compile 'org.igniterealtime.smack:smack-bosh:4.2.0'
-    configurations {
-        all*.exclude group: 'xpp3', module: 'xpp3'
-    }
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'

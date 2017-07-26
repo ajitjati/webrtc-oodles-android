@@ -1,15 +1,34 @@
 package com.oodles.apprtcandroidoodles.login;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.FragmentTransaction;
+import android.app.LoaderManager;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.Loader;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
+import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -33,6 +52,8 @@ import com.oodles.apprtcandroidoodles.R;
 import com.oodles.apprtcandroidoodles.RTCConnection;
 import com.oodles.apprtcandroidoodles.WebSocketRTCClient;
 import com.oodles.apprtcandroidoodles.curdoperation.CurOperationWebRtc;
+import com.oodles.apprtcandroidoodles.util.Keys;
+import com.oodles.apprtcandroidoodles.util.Logger;
 import com.oodles.apprtcandroidoodles.util.LooperExecutor;
 
 import org.json.JSONArray;
@@ -41,6 +62,7 @@ import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +74,8 @@ import java.util.Comparator;
 
 public class LoginUserActivity extends RTCConnection implements AppRTCClient.SignalingEvents {
     private static final String TAG = "LoginUserActivity";
+    private static final int REQUEST_CODE_CONTACTS = 8;
+    private static final String FRAGMENT_DIALOG = "dialog";
     RecyclerView loginUserRecycler;
     private static boolean commandLineRun = false;
     private Intent intent = null;
@@ -79,16 +103,78 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     String roomUrl;
     CurOperationWebRtc curOperationWebRtc;
     private int pos;
-//    boolean renderVideoAndroid;
+    private LoginUserActivity mContext;
+    //    boolean renderVideoAndroid;
+    private static final String[] CONTACTS_ACCESS_PERMISSIONS = {
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_CONTACTS,
+    };
+    String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME +
+            " COLLATE LOCALIZED ASC";
+    private long mIdColIdx;
+    private String mNameColIdx;
+    private String mHasPhoneNumberIdx;
+    private static final String[] PROJECTION = {
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.PHOTO_URI
+    };
+    private View progressBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_user_activity);
-        curOperationWebRtc = new CurOperationWebRtc(LoginUserActivity.this);
-        myPrefs = new MyPrefs(LoginUserActivity.this);
-        initViews();
+        mContext = LoginUserActivity.this;
+        progressBar = findViewById(R.id.progress_bar);
+        myPrefs = new MyPrefs(mContext);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Do something for lollipop and above versions
+            if (!hasPermissionsGranted(CONTACTS_ACCESS_PERMISSIONS, mContext)) {
+                requestWriteReadContactsPermissions(CONTACTS_ACCESS_PERMISSIONS, mContext, REQUEST_CODE_CONTACTS);
+                return;
+            } else {
+                if (!myPrefs.isContactsFetched()) {
+                    init();
+                } else {
+                    curOperationWebRtc = new CurOperationWebRtc(mContext);
+                    initViews();
+                }
+            }
+        } else {
+            if (!myPrefs.isContactsFetched()) {
+                init();
+            } else {
+                curOperationWebRtc = new CurOperationWebRtc(mContext);
+                initViews();
+            }
+        }
+
+
     }
+
+    private void init() {
+        curOperationWebRtc = new CurOperationWebRtc(mContext);
+        getLoaderManager().initLoader(0, null, contactLoaderManager);
+
+    }
+
+
+    private boolean hasPermissionsGranted(String[] permissions, Activity mContext) {
+        for (String permission : permissions) {
+            if (ActivityCompat.checkSelfPermission(mContext, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void requestWriteReadContactsPermissions(String[] contactsAccessPermissions, Activity mContext, int requestCode) {
+        mContext.requestPermissions(contactsAccessPermissions, requestCode);
+    }
+
 
     private void initViews() {
         initRecycler(curOperationWebRtc.getContacts());
@@ -97,7 +183,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
 
     private void initAppRtcValues() {
-        roomUrl = myPrefs.getRoomUrl();
+        roomUrl = /*"https://180.151.230.10:8080/jWebrtc/";*/myPrefs.getRoomUrl();
         wsurl = Uri.parse(roomUrl);
         from = myPrefs.getCallFrom();
         Log.d(TAG, "connecting to:" + wsurl.toString() + "CallFrom" + from);
@@ -202,23 +288,115 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
             intent = new Intent(this, LoginUserActivity.class);
             intent.setData(uri);
             intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, myPrefs.isVideoCall());
+            Logger.LogError("value = "," " + myPrefs.isVideoCall());
             intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
+            Logger.LogError("value = "," " + videoWidth);
             intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
+            Logger.LogError("value = "," " + videoHeight);
             intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
+            Logger.LogError("value = "," " + cameraFps);
             intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
+            Logger.LogError("value = "," " + captureQualitySlider);
             intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
+            Logger.LogError("value = "," " + videoStartBitrate);
             intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
+            Logger.LogError("value = "," " + videoCodec);
             intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
+            Logger.LogError("value = "," " + hwCodec);
             intent.putExtra(CallActivity.EXTRA_CAPTURETOTEXTURE_ENABLED, captureToTexture);
+            Logger.LogError("value = "," " + captureToTexture);
             intent.putExtra(CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, noAudioProcessing);
+            Logger.LogError("value = "," " + noAudioProcessing);
             intent.putExtra(CallActivity.EXTRA_AECDUMP_ENABLED, aecDump);
+            Logger.LogError("value = "," " + aecDump);
             intent.putExtra(CallActivity.EXTRA_OPENSLES_ENABLED, useOpenSLES);
+            Logger.LogError("value = "," " + useOpenSLES);
             intent.putExtra(CallActivity.EXTRA_AUDIO_BITRATE, audioStartBitrate);
+            Logger.LogError("value = "," " + audioStartBitrate);
             intent.putExtra(CallActivity.EXTRA_AUDIOCODEC, audioCodec);
+            Logger.LogError("value = "," " + audioCodec);
             intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
+            Logger.LogError("value = "," " + displayHud);
             intent.putExtra(CallActivity.EXTRA_TRACING, myPrefs.isTracing());
+            Logger.LogError("value = "," " + myPrefs.isTracing());
             intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
+            Logger.LogError("value = "," " + commandLineRun);
             intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+            Logger.LogError("value = "," " + runTimeMs);
+        }
+    }
+
+    LoaderManager.LoaderCallbacks<Cursor> contactLoaderManager = new LoaderManager.LoaderCallbacks<Cursor>() {
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            CursorLoader cursorLoader = new CursorLoader(mContext,
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI, // URI
+                    PROJECTION,
+                    null,
+                    null,
+                    sortOrder
+            );
+            progressBar.setVisibility(View.VISIBLE);
+            Log.e("ProgressBar", " VISIBLE");
+            return cursorLoader;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, final Cursor mCursor) {
+           AsyncTask.execute(new Runnable() {
+               @Override
+               public void run() {
+                   mCursor.moveToPosition(0);
+                   Log.e("cureosr", mCursor.getCount() + "");
+                   Log.e("ProgressBar", " GONE");
+                   while (mCursor.moveToNext()) {
+                       mIdColIdx = mCursor.getLong(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
+                       mNameColIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                       mHasPhoneNumberIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                       String phoneNumber = mHasPhoneNumberIdx.trim();
+                       Log.e("phoneNumber", mHasPhoneNumberIdx + "");
+                       contactHandling(mIdColIdx, mNameColIdx, phoneNumber);
+                   }
+                   runOnUiThread(new Runnable() {
+                       @Override
+                       public void run() {
+                           initViews();
+                           myPrefs.setContactsFetched(true);
+                           progressBar.setVisibility(View.GONE);
+                       }
+                   });
+               }
+           });
+
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
+
+
+    };
+
+    private void contactHandling(long mIdColIdx, String mNameColIdx, String phoneNumber) {
+        if (phoneNumber.length() >= 10) {
+            if (phoneNumber.contains(" ")) {
+                String newNumber = phoneNumber.replace(" ", "");
+                if (newNumber.length() >= 10) {
+                    String newMobileNumber = newNumber.substring(newNumber.length() - 10);
+                    Uri profileImage = ContentUris.withAppendedId(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, mIdColIdx);
+                    Log.e("valueeeeee", myPrefs.getCallFrom());
+                    if (!newMobileNumber.equalsIgnoreCase(myPrefs.getCallFrom())) {
+                        curOperationWebRtc.insertContacts(mIdColIdx, mNameColIdx, newMobileNumber, profileImage, "false");
+                    }
+                }
+            } else {
+                String newMobileNumber = phoneNumber.substring(phoneNumber.length() - 10);
+                Uri profileImage = ContentUris.withAppendedId(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, mIdColIdx);
+                if (!newMobileNumber.equalsIgnoreCase(myPrefs.getCallFrom())) {
+                    curOperationWebRtc.insertContacts(mIdColIdx, mNameColIdx, newMobileNumber, profileImage, "false");
+                }
+            }
         }
     }
 
@@ -252,7 +430,12 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
         @Override
         public boolean onQueryTextChange(String newText) {
-            contactRecyclerView.performFilter(newText);
+            if (!newText.trim().isEmpty()) {
+                contactRecyclerViewAdapter.performFilter(newText);
+            } else {
+                contactRecyclerViewAdapter.refreshContacts();
+            }
+
             return false;
         }
     };
@@ -370,10 +553,17 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         onViewClickListener = new OnViewClickListener() {
             @Override
             public void setOnViewClickListner(View view, int position) {
-                pos = position;
-                makeCallToUser(contacts, position);
+               /* pos = position;
+                makeCallToUser(contacts, position);*/
+                openUserDetailActivity(contacts,position);
             }
         };
+    }
+
+    private void openUserDetailActivity(ArrayList<Contact> contacts, int position) {
+        Intent userDetailIntent = new Intent(mContext,MainOption.class);
+        userDetailIntent.putExtra(Keys.CONNECT_TO,contacts.get(position).getNumber());
+        startActivity(userDetailIntent);
     }
 
     private void makeCallToUser(ArrayList<Contact> contacts, int position) {
@@ -407,8 +597,8 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     private void setContactAdapter(ArrayList<Contact> contacts) {
         contactSorting(contacts);
         clickListen(contacts);
-        contactRecyclerView = new ContactRecyclerView(LoginUserActivity.this, onViewClickListener, contacts);
-        loginUserRecycler.setAdapter(contactRecyclerView);
+        contactRecyclerViewAdapter = new ContactRecyclerViewAdapter(LoginUserActivity.this, onViewClickListener, contacts);
+        loginUserRecycler.setAdapter(contactRecyclerViewAdapter);
     }
 
     private void contactSorting(ArrayList<Contact> contacts) {
@@ -636,4 +826,69 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         Intent intent = new Intent("finish_screensharing");
         sendBroadcast(intent);
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        Logger.LogDebug(TAG, "onRequestPermissionsResult");
+        if (requestCode == REQUEST_CODE_CONTACTS) {
+            if (grantResults.length == CONTACTS_ACCESS_PERMISSIONS.length) {
+                for (int result : grantResults) {
+                    if (result != PackageManager.PERMISSION_GRANTED) {
+                        String errorMsg = getResources().getString(R.string.permission_request_contacts_access);
+                        showErrorDialog(errorMsg, mContext);
+                        break;
+                    } else {
+                        if (!myPrefs.isContactsFetched()) {
+                            init();
+                        } else {
+                            curOperationWebRtc = new CurOperationWebRtc(mContext);
+                            initViews();
+                        }
+                    }
+                }
+            } else {
+                String errorMsg = getResources().getString(R.string.permission_request_contacts_access);
+                showErrorDialog(errorMsg, mContext);
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    public static void showErrorDialog(String errorMsg, Activity mContext) {
+        ErrorDialog.newInstance(errorMsg)
+                .show(mContext.getFragmentManager(), FRAGMENT_DIALOG);
+    }
+
+    public static class ErrorDialog extends DialogFragment {
+
+        private static final String ARG_MESSAGE = "message";
+
+        public static ErrorDialog newInstance(String message) {
+            ErrorDialog dialog = new ErrorDialog();
+            Bundle args = new Bundle();
+            args.putString(ARG_MESSAGE, message);
+            dialog.setArguments(args);
+            return dialog;
+        }
+
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            final Activity activity = getActivity();
+            return new AlertDialog.Builder(activity)
+                    .setMessage(getArguments().getString(ARG_MESSAGE))
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            FragmentCompat.requestPermissions(parent,WRITE_READ_PERMISSIONS ,
+//                                    REQUEST_CODE_VIDEO);
+                        }
+                    })
+                    .create();
+        }
+
+    }
+
 }

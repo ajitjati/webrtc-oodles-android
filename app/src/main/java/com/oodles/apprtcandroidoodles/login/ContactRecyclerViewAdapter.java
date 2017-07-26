@@ -24,13 +24,13 @@ import java.util.ArrayList;
  * Created by ankita on 28/4/17.
  */
 
-public class ContactRecyclerView extends RecyclerView.Adapter<ContactRecyclerView.ContactHolder> {
+public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecyclerViewAdapter.ContactHolder> {
     Context mContext;
     OnViewClickListener onViewClickListener;
     ArrayList<Contact> contactsArray;
     ArrayList<Contact> originalContactArray = new ArrayList<Contact>();
 
-    public ContactRecyclerView(Context context, OnViewClickListener onViewClickListener, ArrayList<Contact> contactsArray) {
+    public ContactRecyclerViewAdapter(Context context, OnViewClickListener onViewClickListener, ArrayList<Contact> contactsArray) {
         this.mContext = context;
         this.contactsArray = contactsArray;
         originalContactArray.addAll(contactsArray);
@@ -38,14 +38,14 @@ public class ContactRecyclerView extends RecyclerView.Adapter<ContactRecyclerVie
     }
 
     @Override
-    public ContactRecyclerView.ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ContactRecyclerViewAdapter.ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View listItemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.contact_row, parent, false);
-        return new ContactRecyclerView.ContactHolder(listItemView);
+        return new ContactRecyclerViewAdapter.ContactHolder(listItemView);
     }
 
     @Override
-    public void onBindViewHolder(ContactRecyclerView.ContactHolder holder, final int position) {
+    public void onBindViewHolder(ContactRecyclerViewAdapter.ContactHolder holder, final int position) {
         Contact mContact = contactsArray.get(position);
         holder.userNumber.setText(mContact.getNumber());
         holder.mLabel.setText(mContact.getName());
@@ -61,12 +61,12 @@ public class ContactRecyclerView extends RecyclerView.Adapter<ContactRecyclerVie
             holder.offlineOnlineUser.setImageDrawable(mContext.getResources().getDrawable(R.drawable.offline_drawable));
         }
         Uri uri = ContentUris.withAppendedId(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, mContact.getContactId());
-        try {
+        /*try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(mContext.getContentResolver(), uri);
             holder.mImage.setImageBitmap(bitmap);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
 
@@ -74,9 +74,17 @@ public class ContactRecyclerView extends RecyclerView.Adapter<ContactRecyclerVie
         contactsArray.clear();
         for (Contact contact : originalContactArray) {
             Log.e("android", "value" + contact.getName());
-            if (contact.getNumber().toLowerCase().startsWith(str.toString().trim().toLowerCase())) {
-                Log.e("contactValue",contact.getName());
-                contactsArray.add(contact);
+            Character character = str.charAt(0);
+            if(Character.isDigit(character)){
+                if (contact.getNumber().toLowerCase().startsWith(str.toString().trim().toLowerCase())) {
+                    Log.e("contactValue",contact.getName());
+                    contactsArray.add(contact);
+                }
+            }else{
+                if(contact.getName().toLowerCase().startsWith(str.toString().trim().toLowerCase())){
+                    Log.e("contactValue",contact.getName());
+                    contactsArray.add(contact);
+                }
             }
         }
         notifyDataSetChanged();
@@ -85,6 +93,12 @@ public class ContactRecyclerView extends RecyclerView.Adapter<ContactRecyclerVie
     @Override
     public int getItemCount() {
         return contactsArray.size();
+    }
+
+    public void refreshContacts() {
+        contactsArray.clear();
+        contactsArray=(ArrayList<Contact>)originalContactArray.clone();
+        notifyDataSetChanged();
     }
 
 

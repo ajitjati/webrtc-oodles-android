@@ -28,6 +28,7 @@ public class MyPrefs {
     private final String VIDEO_CODEC = "videoCodec";
     private final String AUDIO_CODEC = "audioCodec";
     private final String HW_CODEC = "hwCodec";
+    private final String CONTACTS_FETCHED = "contactsFetched";
     private final String CAPTURE_TO_TEXTURE = "captureToTexture";
     private final String AEC_DUMP = "aecDump";
     private final String USE_OPEN_SLES = "useOpenSLES";
@@ -125,6 +126,17 @@ public class MyPrefs {
         spEditor = sharedPreferences.edit();
         spEditor.putBoolean(HW_CODEC, hwCodec);
         spEditor.commit();
+    }
+
+    public void setContactsFetched(boolean isFetched) {
+        spEditor = sharedPreferences.edit();
+        spEditor.putBoolean(CONTACTS_FETCHED, isFetched);
+        spEditor.commit();
+    }
+
+    public boolean isContactsFetched() {
+        return sharedPreferences.getBoolean(CONTACTS_FETCHED, false);
+
     }
 
     public boolean isCaptureToTexture() {

@@ -64,21 +64,21 @@ public class SmackChatting extends AppCompatActivity {
     Button connectButton, deleteButton;
     AbstractXMPPConnection conn1;
     AccountManager accountManager;
-=======
- * 1) https://github.com/igniterealtime/Smack
- */
-public class SmackChatting  extends AppCompatActivity {
-    AbstractXMPPConnection conn1;
-    private static final String DOMAIN = "nimbuzz.com";
-    private static final String HOST = "o.nimbuzz.com";
+//=======
+ //* 1) https://github.com/igniterealtime/Smack
+ //*/
+//public class SmackChatting  extends AppCompatActivity {
+//    AbstractXMPPConnection conn1;
+//    private static final String DOMAIN = "nimbuzz.com";
+//    private static final String HOST = "o.nimbuzz.com";
 
->>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
+//>>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.smack_activity);
-<<<<<<< HEAD
+//<<<<<<< HEAD
         connectButton = (Button) findViewById(R.id.connectButton);
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,20 +114,18 @@ public class SmackChatting  extends AppCompatActivity {
 //        Map<String, String> additionalAttributes = new HashMap<>();
 //        additionalAttributes.put("name", "Ankita Singh");
 //        additionalAttributes.put("email", "ankita.singh@oodlestechnologies.com");
-=======
-        MyLoginTask task = new MyLoginTask();
-        task.execute("");
->>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
+
+//>>>>>>> 7651f61bc50d1e64a7ce80d9eedbf9869a9b4985
     }
 
     private class MyLoginTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... params) {
             try {
-                DomainBareJid serviceNamJid = JidCreate.domainBareFrom("localhost");
+                DomainBareJid serviceNamJid = JidCreate.domainBareFrom("180.151.230.12");
                 XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                         .setUsernameAndPassword("ankita", "774784")
-                        .setHostAddress(InetAddress.getByName("192.168.3.30"))
+                        .setHostAddress(InetAddress.getByName("180.151.230.12"))
                         .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                         .setXmppDomain(serviceNamJid)
                         .setPort(5222)
@@ -148,6 +146,19 @@ public class SmackChatting  extends AppCompatActivity {
                         Log.e("AndroidConnection", "isAuthenticated");
                         roasterAndroid();
                         Log.w("app", "Auth done");
+                        ChatManager chatManager = ChatManager.getInstanceFor(conn1);
+                        chatManager.addIncomingListener(new IncomingChatMessageListener() {
+                            @Override
+                            public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
+
+                            }
+                        });
+                        chatManager.addOutgoingListener(new OutgoingChatMessageListener() {
+                            @Override
+                            public void newOutgoingMessage(EntityBareJid to, Message message, Chat chat) {
+
+                            }
+                        });
                     }
                 } catch (Exception e) {
                     Log.w("app", e.toString());
