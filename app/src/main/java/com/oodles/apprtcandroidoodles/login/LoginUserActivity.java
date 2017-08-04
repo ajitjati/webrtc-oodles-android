@@ -73,6 +73,8 @@ import java.util.Comparator;
  */
 
 public class LoginUserActivity extends RTCConnection implements AppRTCClient.SignalingEvents {
+
+
     private static final String TAG = "LoginUserActivity";
     private static final int REQUEST_CODE_CONTACTS = 8;
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -103,12 +105,20 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     String roomUrl;
     CurOperationWebRtc curOperationWebRtc;
     private int pos;
-    private LoginUserActivity mContext;
+    private Context mContext;
+    private static final int REQUEST_MEDIA_CODE=9;
     //    boolean renderVideoAndroid;
     private static final String[] CONTACTS_ACCESS_PERMISSIONS = {
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.WRITE_CONTACTS,
     };
+
+    private static final String[] CAMERA_MEDIA_PERMISSIONS={
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+    };
+
+
     String sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME +
             " COLLATE LOCALIZED ASC";
     private long mIdColIdx;
@@ -124,14 +134,14 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_user_activity);
-        mContext = LoginUserActivity.this;
+        mContext = getApplicationContext();
         progressBar = findViewById(R.id.progress_bar);
         myPrefs = new MyPrefs(mContext);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Do something for lollipop and above versions
-            if (!hasPermissionsGranted(CONTACTS_ACCESS_PERMISSIONS, mContext)) {
-                requestWriteReadContactsPermissions(CONTACTS_ACCESS_PERMISSIONS, mContext, REQUEST_CODE_CONTACTS);
+            if (!hasPermissionsGranted(CONTACTS_ACCESS_PERMISSIONS)) {
+                requestWriteReadContactsPermissions(CONTACTS_ACCESS_PERMISSIONS, REQUEST_CODE_CONTACTS);
                 return;
             } else {
                 if (!myPrefs.isContactsFetched()) {
@@ -149,20 +159,22 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
                 initViews();
             }
         }
-
-
     }
 
     private void init() {
         curOperationWebRtc = new CurOperationWebRtc(mContext);
         getLoaderManager().initLoader(0, null, contactLoaderManager);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!hasPermissionsGranted(CAMERA_MEDIA_PERMISSIONS)) {
+                requestCameraAndRecordAudioPermission(CAMERA_MEDIA_PERMISSIONS,REQUEST_MEDIA_CODE);
+                return;
+            }
+        }
     }
 
-
-    private boolean hasPermissionsGranted(String[] permissions, Activity mContext) {
+    private boolean hasPermissionsGranted(String[] permissions) {
         for (String permission : permissions) {
-            if (ActivityCompat.checkSelfPermission(mContext, permission)
+            if (ActivityCompat.checkSelfPermission(this, permission)
                     != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
@@ -171,16 +183,19 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void requestWriteReadContactsPermissions(String[] contactsAccessPermissions, Activity mContext, int requestCode) {
-        mContext.requestPermissions(contactsAccessPermissions, requestCode);
+    private void requestWriteReadContactsPermissions(String[] contactsAccessPermissions, int requestCode) {
+        requestPermissions(contactsAccessPermissions, requestCode);
     }
 
+    @RequiresApi(api=Build.VERSION_CODES.M)
+    private void requestCameraAndRecordAudioPermission(String[] cameraMediaPermissions,int requestCode) {
+        requestPermissions(cameraMediaPermissions,requestCode);
+    }
 
     private void initViews() {
         initRecycler(curOperationWebRtc.getContacts());
         initAppRtcValues();
     }
-
 
     private void initAppRtcValues() {
         roomUrl = /*"https://180.151.230.10:8080/jWebrtc/";*/myPrefs.getRoomUrl();
@@ -343,30 +358,30 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, final Cursor mCursor) {
-           AsyncTask.execute(new Runnable() {
-               @Override
-               public void run() {
-                   mCursor.moveToPosition(0);
-                   Log.e("cureosr", mCursor.getCount() + "");
-                   Log.e("ProgressBar", " GONE");
-                   while (mCursor.moveToNext()) {
-                       mIdColIdx = mCursor.getLong(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
-                       mNameColIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                       mHasPhoneNumberIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                       String phoneNumber = mHasPhoneNumberIdx.trim();
-                       Log.e("phoneNumber", mHasPhoneNumberIdx + "");
-                       contactHandling(mIdColIdx, mNameColIdx, phoneNumber);
-                   }
-                   runOnUiThread(new Runnable() {
-                       @Override
-                       public void run() {
-                           initViews();
-                           myPrefs.setContactsFetched(true);
-                           progressBar.setVisibility(View.GONE);
-                       }
-                   });
-               }
-           });
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+                    mCursor.moveToPosition(0);
+                    Log.e("cureosr", mCursor.getCount() + "");
+                    Log.e("ProgressBar", " GONE");
+                    while (mCursor.moveToNext()) {
+                        mIdColIdx = mCursor.getLong(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
+                        mNameColIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                        mHasPhoneNumberIdx = mCursor.getString(mCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        String phoneNumber = mHasPhoneNumberIdx.trim();
+                        Log.e("phoneNumber", mHasPhoneNumberIdx + "");
+                        contactHandling(mIdColIdx, mNameColIdx, phoneNumber);
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            initViews();
+                            myPrefs.setContactsFetched(true);
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    });
+                }
+            });
 
         }
 
@@ -553,9 +568,9 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         onViewClickListener = new OnViewClickListener() {
             @Override
             public void setOnViewClickListner(View view, int position) {
-               /* pos = position;
-                makeCallToUser(contacts, position);*/
-                openUserDetailActivity(contacts,position);
+                pos = position;
+                makeCallToUser(contacts, position);
+                //openUserDetailActivity(contacts,position);
             }
         };
     }
@@ -609,22 +624,26 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     public class CustomComparator implements Comparator<Contact> {
         @Override
         public int compare(Contact o1, Contact o2) {
+            Logger.LogDebug("Hello","compare");
             return o2.getOnline().compareTo(o1.getOnline());
         }
     }
 
     @Override
     public void onWebSocketMessage(String message) {
+        Logger.LogDebug("Hello","onWebSocketMessage");
         //do nothing
     }
 
     @Override
     public void onWebSocketClose() {
+        Logger.LogDebug("Hello","onWebSocketClose");
         //do nothing
     }
 
     @Override
     public void onConnectedToRoom(AppRTCClient.SignalingParameters params) {
+        Logger.LogDebug("Hello","onConnectedToRoom");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -639,6 +658,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
             @Override
             public void run() {
                 try {
+                    Logger.LogDebug("Hello","onUserListUpdate");
                     JSONArray jsonArray = new JSONArray(response);
                     roomList = new ArrayList();
                     ArrayList<Contact> onlineUsers = curOperationWebRtc.getOnlineContacts("true");
@@ -662,6 +682,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     @Override
     public void onIncomingCall(String from, boolean screenSharing) {
+        Logger.LogDebug("Hello","onIncomingCall");
         if (!from.equalsIgnoreCase(myPrefs.getCallFrom())) {
             roomConnectionParameters.to = from;
             roomConnectionParameters.initiator = false;
@@ -693,6 +714,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     public void onIncomingScreenCall(JSONObject from) {
         // super.onIncomingScreenCall()
         logAndToast("Creating OFFER for Screensharing Caller");
+        Logger.LogDebug("Hello","onIncomingScreenCall");
         //do nothing here - just in CallActivity
 
         peerConnectionClient2 = PeerConnectionClient.getInstance(true);
@@ -712,6 +734,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onStartCommunication");
                 if (peerConnectionClient == null) {
                     Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
                     return;
@@ -728,6 +751,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onStartScreenCommunication");
                 if (peerConnectionClient2 == null) {
                     Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
                     return;
@@ -744,6 +768,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onRemoteDescription");
                 if (peerConnectionClient == null) {
                     Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
                     return;
@@ -761,6 +786,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
             @Override
             public void run() {
                 if (peerConnectionClient2 == null) {
+                    Logger.LogDebug("Hello","onRemoteScreenDescription");
                     Log.e(TAG, "Received remote SDP for non-initilized peer connection.");
                     return;
                 }
@@ -772,6 +798,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     @Override
     public void onChannelError(String description) {
+        Logger.LogDebug("Hello","onChannelError");
         Log.e("onChannelError", description);
         logAndToast(description);
     }
@@ -781,6 +808,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onRemoteIceCandidate");
                 if (peerConnectionClient == null) {
                     Log.e(TAG, "Received ICE candidate for non-initilized peer connection.");
                     return;
@@ -795,6 +823,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onRemoteScreenIceCandidate");
                 if (peerConnectionClient2 == null) {
                     Log.e(TAG,
                             "Received ICE candidate for non-initilized peer connection.");
@@ -807,6 +836,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     @Override
     public void onCallback() {
+        Logger.LogDebug("Hello","onCallback");
         appRtcClient.sendCallback();
     }
 
@@ -815,6 +845,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Logger.LogDebug("Hello","onChannelClose");
                 logAndToast("stopCommunication from remotereceived; finishing CallActivity");
                 disconnect(false);
             }
@@ -823,6 +854,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     @Override
     public void onChannelScreenClose() {
+        Logger.LogDebug("Hello","onChannelScreenClose");
         Intent intent = new Intent("finish_screensharing");
         sendBroadcast(intent);
     }
@@ -836,7 +868,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
                 for (int result : grantResults) {
                     if (result != PackageManager.PERMISSION_GRANTED) {
                         String errorMsg = getResources().getString(R.string.permission_request_contacts_access);
-                        showErrorDialog(errorMsg, mContext);
+                        showErrorDialog(errorMsg, this);
                         break;
                     } else {
                         if (!myPrefs.isContactsFetched()) {
@@ -849,7 +881,7 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
                 }
             } else {
                 String errorMsg = getResources().getString(R.string.permission_request_contacts_access);
-                showErrorDialog(errorMsg, mContext);
+                showErrorDialog(errorMsg, this);
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);

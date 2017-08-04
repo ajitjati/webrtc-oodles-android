@@ -24,7 +24,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/oodles_logo"
         android:label="@string/app_name">
 
         <activity android:name=".login.SplashActivity"
