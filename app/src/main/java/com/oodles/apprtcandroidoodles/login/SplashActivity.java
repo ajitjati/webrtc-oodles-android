@@ -6,18 +6,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.oodles.apprtcandroidoodles.R;
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final long SPLASH_TIME_OUT = 5000;
+    private static final long SPLASH_TIME_OUT = 2000;
     private SplashActivity mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_splash);
         mContext = SplashActivity.this;
-
         startSplashTimer();
     }
 

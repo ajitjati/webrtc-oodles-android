@@ -6,12 +6,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".login.LoginUserActivity">
+    <android.support.v7.widget.SearchView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/search_view"
+        android:iconifiedByDefault="false"
+        android:clickable="true"
+        android:queryHint="Search Contact">
+    <requestFocus />
+    </android.support.v7.widget.SearchView>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/loginUserRecycler"
         android:layout_width="match_parent"
         android:padding="10dp"
+        android:layout_below="@+id/search_view"
         android:visibility="visible"
+        android:scrollbars="vertical"
         tools:listitem="@layout/contact_row"
         android:layout_height="match_parent"/>
 

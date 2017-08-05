@@ -27,6 +27,8 @@
         android:icon="@drawable/oodles_logo"
         android:label="@string/app_name">
 
+        //activity list
+        //SplashActivity
         <activity android:name=".login.SplashActivity"
             android:theme="@style/AppTheme">
 
@@ -38,14 +40,19 @@
 
         </activity>
 
+        //LoginActivity
         <activity
             android:name=".login.LoginActivity"
             android:theme="@style/AppTheme"/>
+
+        //SmackChatting
         <activity
             android:name="smackconnection.SmackChatting"
             android:configChanges="orientation|screenSize"
             android:label="CallActivity"
             android:theme="@style/AppThemeBase" />
+
+        //LoginUserActivity
         <activity
             android:name=".login.LoginUserActivity"
             android:label="@string/app_name"
@@ -69,13 +76,13 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable_menu" />
         </activity>
+
+        //MainOption
         <activity
             android:name=".login.MainOption"
             android:theme="@style/AppTheme" />
-        <!-- <activity -->
-        <!-- android:name=".SettingsActivity" -->
-        <!-- android:label="@string/settings_name"></activity> -->
 
+        //CallActivity
         <activity
             android:name=".CallActivity"
             android:configChanges="orientation|screenSize"
@@ -84,15 +91,21 @@
             android:screenOrientation="fullUser"
             android:theme="@style/AppThemeBase" />
 
+        //service list
+        //NotificationService
         <service
             android:name=".NotificationService"
             android:enabled="true"
             android:exported="true" />
+
+        ///MyFcmListenerService
         <service android:name=".MyFcmListenerService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        //MyInstanceIDListenerService
         <service
             android:name=".MyInstanceIDListenerService"
             android:exported="false">
@@ -101,12 +114,21 @@
             </intent-filter>
         </service>
 
+        //meta-data list,keys
+        //gms version
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        //facebook sdk application id
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+
+        //fabric ApiKey
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="61a7f2b796ee7c6566fee8b87f18340849c1863e" />
 
     </application>
 

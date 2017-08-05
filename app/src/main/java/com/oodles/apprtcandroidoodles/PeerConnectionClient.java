@@ -10,10 +10,13 @@
 
 package com.oodles.apprtcandroidoodles;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
+import com.oodles.apprtcandroidoodles.dialogs.OfflineUserAlertDialog;
+import com.oodles.apprtcandroidoodles.login.LoginUserActivity;
 import com.oodles.apprtcandroidoodles.util.LooperExecutor;
 
 import org.webrtc.CameraEnumerationAndroid;
@@ -637,6 +640,7 @@ public class PeerConnectionClient {
         options = null;
         Log.d(TAG, "Closing peer connection done.");
         events.onPeerConnectionClosed();
+        //todo open alert dialog and display user is not online
         ///
         // PeerConnectionFactory.stopInternalTracingCapture();
         // PeerConnectionFactory.shutdownInternalTracer();

@@ -101,6 +101,27 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
         notifyDataSetChanged();
     }
 
+    public void filter(String newText) {
+        contactsArray.clear();
+        if(newText.isEmpty()){
+            contactsArray.addAll(originalContactArray);
+        } else {
+            Character character = newText.charAt(0);
+            for (Contact contact : originalContactArray) {
+                if (character.isDigit(character)) {
+                    if (contact.getNumber().toLowerCase().contains(newText)) {
+                        contactsArray.add(contact);
+                    }
+                } else {
+                    if (contact.getName().toLowerCase().contains(newText)) {
+                        contactsArray.add(contact);
+                    }
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
 
     public class ContactHolder extends RecyclerView.ViewHolder {
         public UserAvatar mImage;
@@ -117,5 +138,9 @@ public class ContactRecyclerViewAdapter extends RecyclerView.Adapter<ContactRecy
             offlineOnlineUser = (ImageView) itemView.findViewById(R.id.offlineOnlineUser);
         }
 
+    }
+
+    public static class SpinnerViewHolder {
+        public TextView textView;
     }
 }

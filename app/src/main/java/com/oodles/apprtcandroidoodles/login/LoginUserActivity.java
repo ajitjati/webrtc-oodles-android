@@ -39,7 +39,6 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -55,14 +54,11 @@ import com.oodles.apprtcandroidoodles.curdoperation.CurOperationWebRtc;
 import com.oodles.apprtcandroidoodles.util.Keys;
 import com.oodles.apprtcandroidoodles.util.Logger;
 import com.oodles.apprtcandroidoodles.util.LooperExecutor;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.SessionDescription;
-
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +68,7 @@ import java.util.Comparator;
  * Created by ankita on 13/4/17.
  */
 
-public class LoginUserActivity extends RTCConnection implements AppRTCClient.SignalingEvents {
+public class LoginUserActivity extends RTCConnection implements AppRTCClient.SignalingEvents,SearchView.OnQueryTextListener,SearchView.OnCloseListener {
 
 
     private static final String TAG = "LoginUserActivity";
@@ -83,7 +79,6 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     private Intent intent = null;
     OnViewClickListener onViewClickListener;
     public String from;
-    SearchView searchView;
     MyPrefs myPrefs;
     private boolean callActive;
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -129,6 +124,8 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.PHOTO_URI
     };
     private View progressBar;
+    private SearchView searchView;
+    private SearchView searchViewNew;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -136,6 +133,9 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         setContentView(R.layout.login_user_activity);
         mContext = getApplicationContext();
         progressBar = findViewById(R.id.progress_bar);
+        searchViewNew=(SearchView)findViewById(R.id.search_view);
+        searchViewNew.setOnQueryTextListener(this);
+
         myPrefs = new MyPrefs(mContext);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -262,7 +262,6 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     private void sendRegistrationToServer(String refreshedToken) {
         //send Token to server here
-
     }
 
     private void registerGCMReceiver() {
@@ -535,11 +534,12 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CONNECTION_REQUEST && commandLineRun) {
+        if (requestCode == CONNECTION_REQUEST ) {
             Log.d(TAG, "Return: " + resultCode);
-            setResult(resultCode);
-            commandLineRun = false;
-            finish();
+            offlineUserAlertDialog();
+            //setResult(resultCode);
+            //commandLineRun = false;
+            //finish();
         }
         if (requestCode == RESULT_OK) {
             if (callActive) {
@@ -549,6 +549,19 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
         }
     }
 
+    private void offlineUserAlertDialog() {
+        final AlertDialog.Builder aBuilder = new AlertDialog.Builder(this);
+        aBuilder.setTitle( "Call couldn't connect user offline");
+        aBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        AlertDialog alertDialog = aBuilder.create();
+        alertDialog.show();
+    }
     private void getVideoWidthHeight() {
         String resolution = myPrefs.getResolution();
         String[] dimensions = resolution.split("[ x]+");
@@ -619,6 +632,25 @@ public class LoginUserActivity extends RTCConnection implements AppRTCClient.Sig
     private void contactSorting(ArrayList<Contact> contacts) {
         Collections.sort(contacts, new CustomComparator());
 
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if(newText!=null) {
+            contactRecyclerViewAdapter.filter(newText);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onClose() {
+        contactRecyclerViewAdapter.filter("");
+        return false;
     }
 
     public class CustomComparator implements Comparator<Contact> {
